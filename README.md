@@ -2,7 +2,7 @@
 
 > 中央大學《AI 人工智慧導論》115-1 學習專案  
 > 平台:Coze(拖拉式 AI Agent 平台)  
-> 目前進度:單元 0 —— 專案構想與使用場景(本文件)
+> 目前進度:單元 0 至 4 完成
 
 ## 1. 專案目標
 
@@ -56,10 +56,10 @@
 | 單元 | 內容 | 狀態 |
 |---|---|---|
 | 0 | AI IDE 撰寫進度報告、建立 GitHub Repo、README | ✅ 本次 |
-| 1 | LLM 選擇與參數 | ⬜ |
-| 2 | Prompt 與 JSON 輸出 | ⬜ |
-| 3 | Memory | ⬜ |
-| 4 | Knowledge | ⬜ |
+| 1 | LLM 選擇與參數 | ✅ |
+| 2 | Prompt 與 JSON 輸出 | ✅(Prompt management 存檔失敗,備份在 `單元/客服-SystemPrompt-v1.md`) |
+| 3 | Memory | ✅ |
+| 4 | Knowledge | ✅ |
 | 5 | Plugin | ⬜ |
 | 6–7 | Chatflow | ⬜ |
 | 8 | Guardrail | ⬜ |
