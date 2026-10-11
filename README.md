@@ -2,7 +2,7 @@
 
 > 中央大學《AI 人工智慧導論》115-1 學習專案  
 > 平台:Coze(拖拉式 AI Agent 平台)  
-> 目前進度:單元 0 至 4 完成
+> 目前進度:單元 0 至 5 完成(另補充單元 1、2 的探究)
 
 ## 1. 專案目標
 
@@ -20,11 +20,11 @@
 
 ## 3. 預計功能(對應課程單元)
 
-- [ ] **LLM 選擇與參數**:比較模型價格與精準度,選用成本合理的模型(單元 1)
-- [ ] **System Prompt**:定義角色、語氣、行為規範,支援 JSON 結構化輸出(單元 2)
-- [ ] **Memory**:以 variable 記錄使用者的 gender / age / job / 想上的課(單元 3)
-- [ ] **Knowledge(RAG)**:上傳課程列表,回答時引用檢索結果(單元 4)
-- [ ] **Plugin**:串接 browser,可讀取使用者提供的課程網址(單元 5)
+- [x] **LLM 選擇與參數**:比較模型價格與精準度,選用成本合理的模型(單元 1)
+- [x] **System Prompt**:定義角色、語氣、行為規範,支援 JSON 結構化輸出(單元 2)
+- [x] **Memory**:以 variable 記錄使用者的 gender / age / job / 想上的課(單元 3)
+- [x] **Knowledge(RAG)**:上傳課程列表,回答時引用檢索結果(單元 4)
+- [x] **Plugin**:串接 browser,可讀取使用者提供的課程網址(單元 5)
 - [ ] **Chatflow**:參數提取 + intent recognition,判斷是否想上課(單元 6、7)
 - [ ] **Guardrail**:在流程最前端與最後端各加一個 LLM 檢查(單元 8)
 - [ ] **發布部署**:發布到 Line,並用 Coze 後台監控 token 使用量(單元 9)
@@ -55,12 +55,12 @@
 
 | 單元 | 內容 | 狀態 |
 |---|---|---|
-| 0 | AI IDE 撰寫進度報告、建立 GitHub Repo、README | ✅ 本次 |
-| 1 | LLM 選擇與參數 | ✅ |
-| 2 | Prompt 與 JSON 輸出 | ✅(Prompt management 存檔失敗,備份在 `單元/客服-SystemPrompt-v1.md`) |
+| 0 | AI IDE 撰寫進度報告、建立 GitHub Repo、README | ✅ |
+| 1 | LLM 選擇與參數 | ✅(補充:為什麼提供多種 LLM,GPT-3.5 與 GPT-4o 實測比較) |
+| 2 | Prompt 與 JSON 輸出 | ✅(補充:版本管理、自動生成 Prompt 的格式;Prompt management 存檔仍是平台錯誤,版本改存在 `單元/客服-SystemPrompt-*.md`) |
 | 3 | Memory | ✅ |
 | 4 | Knowledge | ✅ |
-| 5 | Plugin | ⬜ |
+| 5 | Plugin | ✅(Browser plugin;提示詞注入實驗 11 組,測試頁在 `tests/`;目前 Prompt 為 v3.1) |
 | 6–7 | Chatflow | ⬜ |
 | 8 | Guardrail | ⬜ |
 | 9 | 發布到 Line | ⬜ |
