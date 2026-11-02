@@ -66,11 +66,12 @@ def status_text():
     if not L:
         return "模擬帳戶還沒開始,第一份報告發出後就會建立。"
     s = sim.summary(L)
-    trades = "\n".join(f"  {t['date']} {t['sym']} {t['side']} @ {round(t['price'], 2)}" for t in L["trades"][-5:]) or "  (還沒有)"
-    return (f"💼 模擬帳戶(開始於 {s['開始日']},已跑 {s['已跑天數']} 天)\n"
+    trades = "\n".join(f"  {t['date']} {t['sym']} {t['side']} {round(t['amount'])} USDT → 持有 {t['to_pct']}%"
+                       for t in L["trades"][-5:]) or "  (還沒有)"
+    return (f"💼 模擬帳戶:{s['策略']}(開始於 {s['開始日']},已跑 {s['已跑天數']} 天)\n"
             f"本金 {s['本金USDT']} → 現在 {s['目前總值USDT']} USDT({s['損益%']:+}%)\n"
-            f"對照組(第一天買進不動):{s['對照組(第一天買進不動)總值USDT']} USDT({s['對照組損益%']:+}%)\n"
-            f"各幣:{'、'.join(f'{k} {v}' for k, v in s['各幣狀態'].items())}\n"
+            f"對照組:純50日均線 {s['對照組_純50日均線損益%']:+}%、買進持有 {s['對照組_買進持有損益%']:+}%\n"
+            f"目前持有比例:{'、'.join(f'{k} {v}%' for k, v in s['各幣持有比例%'].items())}\n"
             f"暫停:{s['是否暫停']}\n最近交易:\n{trades}")
 
 

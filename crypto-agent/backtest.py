@@ -2,7 +2,7 @@
 (2) 對照使用者的虧損上限——歷史上任選一天開始,一年內虧到上限的機率。
 用法:python backtest.py [BTC ETH ...]  結果寫到 data/backtest.json 與 backtest_result.md"""
 import io, json, os, sys
-import market
+import market, strategy
 
 FEE = 0.001                          # 每次買或賣 0.1%
 CANDIDATES = [10, 20, 30, 50, 100, 150, 200]
@@ -20,6 +20,16 @@ def multipliers(c, n):
         if pos:
             m *= c[i] / c[i - 1]
         g[i] = m
+    return g
+
+
+def multipliers_w(c, wfn, cost=FEE):
+    """持有比例版:昨天收盤決定的比例 w 吃今天的漲跌,換手扣 |w 變化| × 成本。"""
+    g = [1.0] * len(c); pos = 0.0
+    for i in range(201, len(c)):
+        w = wfn(c, i - 1)
+        g[i] = 1 - abs(w - pos) * cost + w * (c[i] / c[i - 1] - 1)
+        pos = w
     return g
 
 
@@ -69,6 +79,11 @@ def _analyze(sym, rows, max_loss):
     if max_loss:
         out["一年內虧到上限的機率%"] = {f"{n}日均線": hit_rate(gs[n], s, b, max_loss) for n in (best, 50)}
         out["一年內虧到上限的機率%"]["買進持有"] = hit_rate(bh, s, b, max_loss)
+    # 上線的三條路線:測試期(2024 起,策略沒看過)的成績與一年內虧到上限的機率
+    out["三條路線"] = {}
+    for name, fn in strategy.TRACKS.items():
+        g = multipliers_w(c, fn)
+        out["三條路線"][name] = {**stats(g, t, b), **({"一年內虧到上限機率%": hit_rate(g, s, b, max_loss)} if max_loss else {})}
     return out
 
 

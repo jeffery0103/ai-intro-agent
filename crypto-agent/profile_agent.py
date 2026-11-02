@@ -142,8 +142,8 @@ def risk_check(prof):
     import backtest
     lines = []
     for s in prof["symbols"]:
-        h = backtest.analyze(s, prof["max_loss_pct"] / 100)["一年內虧到上限的機率%"]
-        lines.append(f"{s}:50 日均線規則 {h['50日均線']}%、買進持有 {h['買進持有']}%")
+        t = backtest.analyze(s, prof["max_loss_pct"] / 100)["三條路線"]
+        lines.append(f"{s}:" + "、".join(f"{k} {v['一年內虧到上限機率%']}%" for k, v in t.items()))
     return lines
 
 
