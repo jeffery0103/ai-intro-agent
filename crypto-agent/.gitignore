@@ -1,0 +1,5 @@
+data/
+state/
+reports/
+err.txt
+__pycache__/
