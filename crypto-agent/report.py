@@ -2,7 +2,7 @@
 → 沒過就退回重寫一次 → 存到 reports/ 與儲存層。每一步都記 Tracing。
 用法:python report.py(server.py 也會呼叫 run())"""
 import io, json, os, re, sys, time
-import gem, market, sim, backtest, storage, strategy
+import gem, market, sim, backtest, storage, strategy, news
 
 WRITER = ["gemini-flash-lite-latest", "gemini-flash-latest"]
 AUDITOR = ["gemini-flash-latest", "gemini-flash-lite-latest"]
@@ -27,12 +27,15 @@ WSYS = ("你是加密貨幣新手的每日報告助理,讀者完全不懂投資�
         "寫法:稱呼讀者一律用『你』,不要說『使用者』;像跟朋友解釋,每個幣先用一句話講『這對讀者代表什麼』(例如:規則現在是拿著現金觀望,今天不用做任何事),"
         "再挑 2~3 個最重要的數字說明;不要把 JSON 欄位名稱直接念成句子,也不要每個數字都列。"
         "模擬帳戶要講白話的比較:策略跟兩個對照組(純50日均線、買進持有)誰目前比較好(用 JSON 的損益%)。"
-        "用繁體中文,400 字內,分段:\n## 一句話\n## 各幣狀況(每個幣一小段)\n## 你的模擬帳戶(跟對照組比)\n## 風險提醒(要提到使用者的虧損上限與歷史機率)\n"
+        "新聞與事件段落:挑 2~4 個最重要的事件,照 JSON「新聞與事件」的 summary 轉述,不可加入 JSON 沒有的因果或推測;"
+        "每個事件註明幾家來源、幾小時前;只有 1 家來源的要說『只有一家報導』,觀點類的要說『這是看法不是事實』;"
+        "有近 7 天被駭紀錄或恐懼與貪婪指數就各用一句帶過;最後一句提醒:新聞不會改變持有比例,而且可能片面或晚幾天。"
+        "用繁體中文,550 字內,分段:\n## 一句話\n## 各幣狀況(每個幣一小段)\n## 新聞與事件(只供參考)\n## 你的模擬帳戶(跟對照組比)\n## 風險提醒(要提到使用者的虧損上限與歷史機率)\n"
         "不用寫名詞解釋和免責聲明,程式會附上。")
 ASYS = ("你是稽查員,檢查一份給新手的加密貨幣報告能不能發送。逐條檢查:(1) 報告裡每個數字都要在 JSON 找得到;"
         "(2) 不可有價格預測或『保證/一定/必漲/必跌/建議買進/建議賣出』;(3) 每個幣的規則訊號與持有比例與 JSON 相符;"
         "(4) 模擬帳戶損益與對照組的比較方向正確(誰比較高);(5) 不可編造 JSON 沒有的資訊(新聞、原因、事件);"
-        "(6) 風險提醒有提到使用者的虧損上限。"
+        "(6) 風險提醒有提到使用者的虧損上限;(7) 新聞段落只能轉述 JSON「新聞與事件」裡的內容,不可加入因果、推測或把觀點寫成事實。"
         '只輸出 JSON:{"pass": true 或 false, "issues": ["具體問題", ...]}')
 
 trace = []
@@ -78,6 +81,16 @@ def safe_funding(s):
         return None
 
 
+def safe_news():
+    try:
+        r = news.collect()
+        r.pop("來源狀態", None)
+        return r
+    except Exception as e:                    # 新聞只是參考,壞掉就跳過,不能擋住報告
+        print("新聞失敗:", type(e).__name__, flush=True)
+        return None
+
+
 def run():
     """產生今天的報告。回傳 {"date", "md"(完整), "chat"(Telegram 用), "ok"};還沒設定回傳 None。"""
     prof = storage.load("profile.json")
@@ -90,6 +103,7 @@ def run():
     fund = step("1b 抓資金費率", lambda: {s: safe_funding(s) for s in syms})
     L, new = step("2 推進模擬帳戶(程式)", lambda: sim.update(prof, rows))
     bt = step("3 回測與虧損上限對照(程式)", lambda: {s: backtest.analyze(s, prof["max_loss_pct"] / 100) for s in syms})
+    nw = step("3b 新聞與事件(RSS + DeFiLlama + 情緒指數,LLM 歸類)", safe_news)
 
     facts = {"使用者設定": {"本金USDT": round(prof["capital_usdt"]), "虧損上限%": prof["max_loss_pct"], "幣種": syms},
              "各幣": [], "模擬帳戶": sim.summary(L),
@@ -109,6 +123,8 @@ def run():
                       **{f"測試期_{k}": {"報酬%": v["報酬%"], "最大回撤%": v["最大回撤%"]} for k, v in b.items()},
                       f"一年內虧到{prof['max_loss_pct']:g}%的機率%": {k: v["一年內虧到上限機率%"] for k, v in b.items()}}
         facts["各幣"].append(snap)
+    if nw:
+        facts["新聞與事件"] = nw
     date = facts["各幣"][0]["日期"]
     payload = json.dumps(facts, ensure_ascii=False, indent=1)
 
