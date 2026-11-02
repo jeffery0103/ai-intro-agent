@@ -1,5 +1,5 @@
 """Binance 公開 API 抓日線(不需要金鑰),存到 data/ 當快取;指標全部用程式算,不用 LLM。"""
-import json, os, time, urllib.request, datetime as dt
+import json, os, time, urllib.error, urllib.request, datetime as dt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
@@ -11,14 +11,28 @@ SPOT_HOSTS = ["https://api.binance.com", "https://data-api.binance.vision"]   # 
 
 
 def _get(url):
-    return json.load(urllib.request.urlopen(url, timeout=20))
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (crypto-agent learning project)"})   # OKX 會擋沒有 User-Agent 的請求
+    return json.load(urllib.request.urlopen(req, timeout=20))
+
+
+_binance_blocked_until = 0.0     # Binance 回 429/418 後,這個時間前都不碰它(越抓越久會被封 IP)
 
 
 def _spot(path):
+    global _binance_blocked_until
+    if time.time() < _binance_blocked_until:
+        raise RuntimeError("Binance 限流中,先不送請求")
     err = None
     for h in SPOT_HOSTS:
         try:
             return _get(h + path)
+        except urllib.error.HTTPError as e:
+            if e.code in (418, 429):                # 418 = 已經被封 IP,429 = 快要被封
+                wait = int(e.headers.get("Retry-After") or 3600)
+                _binance_blocked_until = time.time() + wait
+                print(f"Binance 回 {e.code},{wait} 秒內改用備援", flush=True)
+                raise
+            err = e
         except Exception as e:
             err = e
     raise err
@@ -28,13 +42,11 @@ def day(ms):
     return dt.datetime.fromtimestamp(ms / 1000, dt.timezone.utc).strftime("%Y-%m-%d")
 
 
-def load(sym):
-    """回傳 [(日期, 收盤價), ...],只含已收盤的日線(UTC 0 點 = 台灣 8 點收盤)。"""
-    os.makedirs(DATA, exist_ok=True)
-    path = os.path.join(DATA, f"{sym}USDT_1d.json")
-    rows = json.load(open(path)) if os.path.exists(path) else []
-    start = rows[-1][0] + 86400000 if rows else int(dt.datetime.strptime(START, "%Y-%m-%d").replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
-    now = int(time.time() * 1000)
+LAST_SOURCE = {}       # 每個幣這次實際用了哪個資料來源,給 Tracing 看
+
+
+def _binance(sym, start, now):
+    rows = []
     while start < now:
         k = _spot(f"/api/v3/klines?symbol={sym}USDT&interval=1d&startTime={start}&limit=1000")
         k = [x for x in k if x[6] < now]           # x[6] = 收盤時間,還沒收盤的今天不要
@@ -42,6 +54,40 @@ def load(sym):
             break
         rows += [[x[0], float(x[4]), float(x[5])] for x in k]
         start = k[-1][0] + 86400000
+    return rows
+
+
+def _okx(sym, start, now):
+    """備援:OKX 的 UTC 日線(跟 Binance 一樣以 UTC 0 點切日,收盤價差異約 0.01~0.05%)。從新往舊翻頁。"""
+    rows, after = [], now
+    while True:
+        k = _get(f"https://www.okx.com/api/v5/market/history-candles?instId={sym}-USDT&bar=1Dutc&limit=100&after={after}")["data"]
+        if not k:
+            break
+        rows += [[int(x[0]), float(x[4]), float(x[5])] for x in k if x[8] == "1" and int(x[0]) >= start]
+        after = int(k[-1][0])
+        if after <= start:
+            break
+        time.sleep(0.12)                            # OKX 公開 API 每 2 秒 20 次
+    return sorted(rows)
+
+
+def load(sym):
+    """回傳 [(日期, 收盤價), ...],只含已收盤的日線(UTC 0 點 = 台灣 8 點收盤)。
+    先用 Binance(主站 → 公開資料站),都失敗才用 OKX:資料來源不能只靠一家交易所。"""
+    os.makedirs(DATA, exist_ok=True)
+    path = os.path.join(DATA, f"{sym}USDT_1d.json")
+    rows = json.load(open(path)) if os.path.exists(path) else []
+    start = rows[-1][0] + 86400000 if rows else int(dt.datetime.strptime(START, "%Y-%m-%d").replace(tzinfo=dt.timezone.utc).timestamp() * 1000)
+    now = int(time.time() * 1000)
+    if rows and rows[-1][0] >= (now // 86400000 - 1) * 86400000:    # 昨天(最新已收盤)那根已經有了,不用再問交易所
+        LAST_SOURCE.setdefault(sym, "快取")
+        return [(day(r[0]), r[1]) for r in rows]
+    try:
+        new = _binance(sym, start, now); LAST_SOURCE[sym] = "Binance"
+    except Exception:
+        new = _okx(sym, start, now); LAST_SOURCE[sym] = "OKX(Binance 連不上)"
+    rows += new
     json.dump(rows, open(path, "w"))
     return [(day(r[0]), r[1]) for r in rows]
 

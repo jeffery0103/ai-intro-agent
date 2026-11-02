@@ -8,8 +8,8 @@ src = io.open("reports/latest.md", encoding="utf-8").read()
 facts = json.loads(re.search(r"```json\n(.*?)\n```", src, re.S).group(1))
 body = src.split("\n", 1)[1].split("## 名詞小教室")[0].strip()
 btc = facts["各幣"][0]; acct = facts["模擬帳戶"]
-worse = "規則" if acct["損益%"] < acct["對照組損益%"] else "對照組"
-better = "對照組" if worse == "規則" else "規則"
+worse = "策略" if acct["損益%"] < acct["對照組_買進持有損益%"] else "買進持有"
+better = "買進持有" if worse == "策略" else "策略"
 
 CASES = [
     ("原版(應該通過)", body, True),
@@ -19,12 +19,13 @@ CASES = [
     ("編造新聞", body + "\n這波下跌是因為美國現貨 ETF 連續三天資金流出。", False),
     ("比較方向講反", body + f"\n目前{worse}的表現比{better}好。", False),
     ("刪掉虧損上限", body.split("## 風險提醒")[0].strip(), False),
+    ("新聞加入因果", body + "\n這次比特幣跌破均線,主要就是因為交易所被駭。", False),
 ]
 
 
 def audit(text):
     r = report.llm(report.AUDITOR, "JSON:\n" + json.dumps(facts, ensure_ascii=False, indent=1) + "\n\n報告:\n" + text,
-                   report.ASYS, temperature=0, thinking="low", tries=2, timeout=30)
+                   report.ASYS, temperature=0, thinking="low", tries=1, timeout=20)
     try:
         v = report.gem.parse_json(r["text"])
     except Exception:
@@ -33,10 +34,10 @@ def audit(text):
 
 
 out = io.open("eval_audit_result.md", "w", encoding="utf-8")
-out.write("# 稽查員測試結果\n\n| 情境 | 應該 | 程式核對數字 | LLM 稽查 | 兩層合起來 | 稽查模型 | 秒 |\n|---|---|---|---|---|---|---|\n")
+out.write("# 稽查員測試結果\n\n| 情境 | 應該 | 程式核對(數字+必要內容) | LLM 稽查 | 兩層合起來 | 稽查模型 | 秒 |\n|---|---|---|---|---|---|---|\n")
 rows = []
 for name, text, should in CASES:
-    bad = report.numbers_ok(text, facts)
+    bad = report.numbers_ok(text, facts) + report.required_ok(text, facts)
     v, model, sec = audit(text)
     num_pass = not bad; llm_pass = v.get("pass")
     final = num_pass and bool(llm_pass)

@@ -5,7 +5,8 @@ import io, json, os, re, sys, time
 import gem, market, sim, backtest, storage, strategy, news
 
 WRITER = ["gemini-flash-lite-latest", "gemini-flash-latest"]
-AUDITOR = ["gemini-flash-latest", "gemini-flash-lite-latest"]
+# 稽查:Flash 常忙線(429/503/逾時),只給一次機會、20 秒;之後由 Flash-Lite 代打,給兩次
+AUDITOR = ["gemini-flash-latest", "gemini-flash-lite-latest", "gemini-flash-lite-latest"]
 OUT = os.path.join(market.HERE, "reports")
 
 # 名詞解釋由人工確認後寫死,報告最後原文附上,不讓 LLM 自己解釋(避免講錯)
@@ -60,6 +61,18 @@ def llm(models, prompt, system, **kw):
     return r
 
 
+def required_ok(text, facts):
+    """程式檢查「一定要有」的內容(LLM 稽查在長報告裡會漏看,eval 抓到過):虧損上限、每個幣的持有比例。"""
+    miss = []
+    lim = facts["使用者設定"]["虧損上限%"]
+    if "虧損上限" not in text or not re.search(rf"(?<![\d.]){lim:g}(\.0)?\s*%", text):
+        miss.append(f"缺少:虧損上限 {lim:g}%")
+    for c in facts["各幣"]:
+        if f"{c['策略持有比例%']}%" not in text.replace(" %", "%"):
+            miss.append(f"缺少:{c['幣種']} 持有 {c['策略持有比例%']}%")
+    return miss
+
+
 def numbers_ok(text, facts):
     """程式核對:報告裡 2 位數以上的數字,都要能在 JSON 裡找到(容許四捨五入到整數或 1 位小數)。"""
     allowed = set()
@@ -99,7 +112,7 @@ def run():
     trace.clear()
     syms = prof["symbols"]
 
-    rows = step("1 抓日線(Binance 公開 API)", lambda: {s: market.load(s) for s in syms})
+    rows = step("1 抓日線(Binance,失敗改 OKX;今天已抓過就用快取)", lambda: {s: market.load(s) for s in syms})
     fund = step("1b 抓資金費率", lambda: {s: safe_funding(s) for s in syms})
     L, new = step("2 推進模擬帳戶(程式)", lambda: sim.update(prof, rows))
     bt = step("3 回測與虧損上限對照(程式)", lambda: {s: backtest.analyze(s, prof["max_loss_pct"] / 100) for s in syms})
@@ -107,7 +120,8 @@ def run():
 
     facts = {"使用者設定": {"本金USDT": round(prof["capital_usdt"]), "虧損上限%": prof["max_loss_pct"], "幣種": syms},
              "各幣": [], "模擬帳戶": sim.summary(L),
-             "今天新交易": [f"{t['sym']} {t['side']} {t['amount']} USDT,調到持有 {t['to_pct']}%" for t in new] or "無"}
+             "今天新交易": [f"{t['sym']} {t['side']} {t['amount']} USDT,調到持有 {t['to_pct']}%" for t in new] or "無",
+             "價格資料來源": dict(market.LAST_SOURCE)}
     for s in syms:
         c = [x[1] for x in rows[s]]; i = len(c) - 1
         snap = market.snapshot(s, rows[s], strategy.MA_N)
@@ -130,10 +144,10 @@ def run():
 
     rep = step("4 寫報告(LLM)", lambda: llm(WRITER, "今日 JSON:\n" + payload, WSYS))
     text = rep.get("text", "(寫報告失敗)")
-    bad = step("5 程式核對數字", lambda: numbers_ok(text, facts))
+    bad = step("5 程式核對(數字+必要內容)", lambda: numbers_ok(text, facts) + required_ok(text, facts))
 
     def audit(t):
-        r = llm(AUDITOR, "JSON:\n" + payload + "\n\n報告:\n" + t, ASYS, temperature=0, thinking="low", tries=2, timeout=30)
+        r = llm(AUDITOR, "JSON:\n" + payload + "\n\n報告:\n" + t, ASYS, temperature=0, thinking="low", tries=1, timeout=20)
         try:
             r["verdict"] = gem.parse_json(r["text"])
         except Exception:
@@ -144,10 +158,10 @@ def run():
     retried = False
     if bad or not aud["verdict"].get("pass"):
         retried = True
-        fb = "上一版被退回,問題:\n- " + "\n- ".join(aud["verdict"].get("issues", []) + [f"JSON 找不到的數字:{x}" for x in bad])
+        fb = "上一版被退回,問題:\n- " + "\n- ".join(aud["verdict"].get("issues", []) + [x if x.startswith("缺少") else f"JSON 找不到的數字:{x}" for x in bad])
         rep = step("7 退回重寫(LLM)", lambda: llm(WRITER, "今日 JSON:\n" + payload + "\n\n" + fb + "\n請修正後重寫整份報告。", WSYS))
         text = rep.get("text", text)
-        bad = step("8 程式再核對", lambda: numbers_ok(text, facts))
+        bad = step("8 程式再核對(數字+必要內容)", lambda: numbers_ok(text, facts) + required_ok(text, facts))
         aud = step("9 再稽查(LLM)", lambda: audit(text))
     ok = not bad and aud["verdict"].get("pass")
 
