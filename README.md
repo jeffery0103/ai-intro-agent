@@ -2,7 +2,7 @@
 
 > 中央大學《AI 人工智慧導論》115-1 學習專案  
 > 平台:Coze(拖拉式 AI Agent 平台)  
-> 目前進度:單元 0 至 5 完成(另補充單元 1、2 的探究)
+> 目前進度:單元 0 至 6 完成(另補充單元 1、2 的探究)。期末方向:加密貨幣每日報告 Agent
 
 ## 1. 專案目標
 
@@ -61,7 +61,8 @@
 | 3 | Memory | ✅ |
 | 4 | Knowledge | ✅ |
 | 5 | Plugin | ✅(Browser plugin;提示詞注入實驗 11 組,測試頁在 `tests/`;目前 Prompt 為 v3.1) |
-| 6–7 | Chatflow | ⬜ |
+| 6 | 工作流程 | ✅(不用 Coze:規則產生訊號 → Gemini Flash-Lite 寫報告 → Gemini Flash 稽查;含 Tracing、容錯、稽查 Eval;程式在 `單元/crypto-*.py`) |
+| 7 | 進階工作流程 | ⬜ |
 | 8 | Guardrail | ⬜ |
 | 9 | 發布到 Line | ⬜ |
 | 10 | 期末發表 | ⬜ |

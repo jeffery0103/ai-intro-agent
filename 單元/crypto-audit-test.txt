@@ -1,0 +1,17 @@
+gemini-flash-latest 第1次: 503 (7.7s)
+gemini-flash-latest 第2次: 503 (2.1s)
+gemini-flash-latest 第3次: 503 (9.3s)
+gemini-flash-lite-latest 第1次: 成功 (1.4s)
+```json
+{
+  "pass": false,
+  "issues": [
+    "報告中的收盤價 95,000 與 JSON 中的 78354 不一致",
+    "出現價格預測與『保證』等違規字眼",
+    "規則訊號『持有』與 JSON 中的『空手(收盤價在50日均線下方)』不相符",
+    "缺少標準風險提醒與免責聲明，且宣稱『幾乎沒有風險』不符合事實",
+    "編造了 JSON 中沒有的技術面強勢與建議全倉買進等資訊"
+  ]
+}
+```
+{'model': 'gemini-3.5-flash-lite', 'sec': 1.4, 'in': 330, 'out': 149, 'think': None}
