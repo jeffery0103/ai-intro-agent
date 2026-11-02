@@ -3,7 +3,7 @@
 - POST /tg:Telegram webhook,處理指令與設定 Agent 的追問。
 環境變數:GEMINI_API_KEY、TELEGRAM_BOT_TOKEN、GIST_ID、GITHUB_TOKEN(都由使用者在 Render 後台設定)。
 用法(本機測試):python server.py"""
-import datetime as dt, hashlib, json, os, threading, traceback
+import datetime as dt, hashlib, json, os, threading, time, traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import storage, report, sim, profile_agent, tg
 
@@ -54,7 +54,7 @@ def daily_job(force=False):
             if force or r["date"] != b.get("last_report"):
                 tg.send(b["chat_id"], r["chat"])
             b["last_report"] = r["date"]; storage.save("bot.json", b)
-        log("報告", r["date"], "稽查", "通過" if r["ok"] else "未通過")
+        log("報告", r["date"], "稽查", "通過" if r["ok"] else "未通過", "|", " / ".join(f"{x['步驟']} {x['秒']}s" for x in report.trace))
     except Exception:
         log("報告失敗\n" + traceback.format_exc())
     finally:
@@ -153,8 +153,11 @@ class H(BaseHTTPRequestHandler):
 
     @staticmethod
     def _safe(chat_id, text):
+        t = time.time()
         try:
+            tg.typing(chat_id)
             handle(chat_id, text)
+            log(f"訊息處理 {round(time.time() - t, 1)} 秒:{text[:20] if text.startswith('/') else '(回答)'}")
         except Exception:
             log("處理訊息失敗\n" + traceback.format_exc())
             tg.send(chat_id, "出了點問題,請稍後再試。")

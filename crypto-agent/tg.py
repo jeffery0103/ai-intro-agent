@@ -36,3 +36,9 @@ def send(chat_id, text):
 
 def set_webhook(url, secret):
     return api("setWebhook", url=url, secret_token=secret, allowed_updates=["message"], drop_pending_updates=True)
+
+
+def typing(chat_id):
+    """顯示「正在輸入⋯」(約 5 秒),讓使用者知道有在處理。"""
+    if TOKEN:
+        api("sendChatAction", chat_id=chat_id, action="typing")

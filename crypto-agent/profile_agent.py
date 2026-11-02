@@ -49,14 +49,14 @@ def validate(field, v, extra):
 
 def fast_parse(field, a):
     """簡單的回答程式自己處理,不叫 LLM(Routing:省時間,API 掛掉也能用)。處理不了回傳 None。"""
-    s = a.strip().replace(",", "").replace(",", "")
+    s = a.strip().replace(",", "").replace("，", "")
     if s in ("不知道", "不確定", "不清楚", "隨便", "都可以"):
         return {"symbols": ["BTC"]} if field == "symbols" else {field: None, "_vague": True}
     num = re.fullmatch(r"-?\d+(\.\d+)?", s.rstrip("%").replace("USDT", "").strip())
     if num and field in ("capital_usdt", "max_loss_pct"):
         return {field: float(num.group())}
-    up = s.upper()
-    if field == "symbols" and re.fullmatch(r"[A-Z ,、和]+", up):
+    up = a.strip().upper()                   # 幣種之間的逗號要留著,不能用上面去掉千分位的 s
+    if field == "symbols" and re.fullmatch(r"[A-Z ,，、/和跟]+", up):
         codes = re.findall(r"[A-Z]+", up)
         return {"symbols": [c for c in codes if c in market.SUPPORTED],
                 "unsupported": [c for c in codes if c not in market.SUPPORTED]}

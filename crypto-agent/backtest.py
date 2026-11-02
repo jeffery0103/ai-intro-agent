@@ -42,8 +42,19 @@ def hit_rate(g, a, b, limit, horizon=365):
     return round(hits / total * 100) if total else None
 
 
+_memo = {}
+
+
 def analyze(sym, max_loss=None):
+    """同一個幣、同一天資料、同一個上限只算一次(Render 免費方案只有 0.1 顆 CPU)。"""
     rows = market.load(sym)
+    key = (sym, rows[-1][0], max_loss)
+    if key not in _memo:
+        _memo[key] = _analyze(sym, rows, max_loss)
+    return _memo[key]
+
+
+def _analyze(sym, rows, max_loss):
     d = [r[0] for r in rows]; c = [r[1] for r in rows]
     a = 201; s = next(i for i, x in enumerate(d) if x >= market.START and i >= a)
     t = d.index(next(x for x in d if x >= SPLIT)); b = len(c)
