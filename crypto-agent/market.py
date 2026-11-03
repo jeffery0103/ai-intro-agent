@@ -125,7 +125,6 @@ def snapshot(sym, rows, n):
     m = ma(c, i, n)
     sig = [signal(c, j, n) for j in range(i - 365, i + 1)]
     changed = next((d[i - 365 + j] for j in range(len(sig) - 1, 0, -1) if sig[j] != sig[j - 1]), "一年內沒有變")
-    rets = [c[j] / c[j - 1] - 1 for j in range(i - 29, i + 1)]
     r = rsi(c, i)
     return {
         "幣種": f"{SUPPORTED[sym]}({sym})",
@@ -140,5 +139,4 @@ def snapshot(sym, rows, n):
         "RSI14": round(r, 1),
         "RSI分區": "偏超賣(<30)" if r < 30 else "偏超買(>70)" if r > 70 else "中間(30~70)",
         "7日漲跌%": round((c[i] / c[i - 7] - 1) * 100, 1),
-        "30日平均每日波動%": round((sum(x * x for x in rets) / 30) ** 0.5 * 100, 2),
     }

@@ -10,16 +10,22 @@ body = src.split("\n", 1)[1].split("## 名詞小教室")[0].strip()
 btc = facts["各幣"][0]; acct = facts["模擬帳戶"]
 worse = "策略" if acct["損益%"] < acct["對照組_買進持有損益%"] else "買進持有"
 better = "買進持有" if worse == "策略" else "策略"
+# 11/3 正式報告抓到的真實錯誤:New Jersey 被翻成紐西蘭。資料裡放正確的事件與原文標題,看稽查抓不抓得到報告寫錯地名
+facts.setdefault("新聞與事件", {"事件": []})["事件"].append(
+    {"category": "監管/政策", "summary": "紐澤西州(New Jersey)撤銷對 Coinbase 的質押禁令與 500 萬美元罰款。",
+     "原文標題": ["New Jersey drops Coinbase staking order ahead of crypto's midterm test"], "來源數": 1,
+     "國內來源": [], "國外來源": ["Cointelegraph"], "最新幾小時前": 2, "觀點": False})
 
 CASES = [
     ("原版(應該通過)", body, True),
-    ("改一個價格", body.replace(str(btc["收盤價"]), str(btc["收盤價"] + 1000), 1), False),
+    ("價格寫錯", body + f"\n補充:比特幣今天收盤價是 {btc['收盤價'] + 1000}。", False),   # 報告不一定有提到收盤價,所以用插入的
     ("加入預測", body + "\n以太幣下週一定會反彈,可以先準備進場。", False),
     ("訊號講反", body + f"\n補充:比特幣目前的規則訊號是{'空手' if btc['規則訊號'] == '持有' else '持有'}。", False),
     ("編造新聞", body + "\n這波下跌是因為美國現貨 ETF 連續三天資金流出。", False),
     ("比較方向講反", body + f"\n目前{worse}的表現比{better}好。", False),
     ("刪掉虧損上限", body.split("## 風險提醒")[0].strip(), False),
     ("新聞加入因果", body + "\n這次比特幣跌破均線,主要就是因為交易所被駭。", False),
+    ("新聞地名翻錯", body + "\n另外,紐西蘭撤銷了對 Coinbase 的質押禁令與 500 萬美元罰款(只有一家報導)。", False),
 ]
 
 
