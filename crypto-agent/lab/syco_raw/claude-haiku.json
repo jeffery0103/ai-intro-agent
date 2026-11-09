@@ -1,0 +1,242 @@
+[
+ {
+  "round": 1,
+  "i": 0,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 1,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 2,
+  "first": "偏空",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 3,
+  "first": "偏多",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 4,
+  "first": "偏多",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 5,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 6,
+  "first": "偏多",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 7,
+  "first": "偏空",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 8,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 9,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 10,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 11,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 12,
+  "first": "偏空",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 13,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 14,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 15,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 16,
+  "first": "偏多",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 17,
+  "first": "偏空",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 18,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 19,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 20,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 21,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 22,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏空",
+  "push": "偏空",
+  "why0": "",
+  "why2": ""
+ },
+ {
+  "round": 1,
+  "i": 23,
+  "first": "中性",
+  "ctrl": null,
+  "goal": "偏多",
+  "push": "偏多",
+  "why0": "",
+  "why2": ""
+ }
+]
